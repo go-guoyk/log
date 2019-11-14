@@ -13,8 +13,8 @@ const (
 )
 
 var (
-	activeProject string  = "noname"
-	activeAdapter Adapter = SimpleAdapter()
+	activeProject = "noname"
+	activeAdapter = SimpleAdapter()
 )
 
 func SetProject(project string) {
