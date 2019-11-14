@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"go.guoyk.net/log/adapter"
 	"time"
 )
 
@@ -14,14 +15,14 @@ const (
 
 var (
 	activeProject = "noname"
-	activeAdapter = SimpleAdapter()
+	activeAdapter = adapter.SimpleAdapter()
 )
 
 func SetProject(project string) {
 	activeProject = project
 }
 
-func SetAdapter(adapter Adapter) {
+func SetAdapter(adapter adapter.Adapter) {
 	activeAdapter = adapter
 }
 
