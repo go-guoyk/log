@@ -2,7 +2,7 @@ package log
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -12,11 +12,11 @@ type testDriver struct {
 }
 
 func (t2 *testDriver) Log(t time.Time, project, topic string, meta map[string]interface{}, message string) error {
-	require.True(t2.t, time.Now().Sub(t) < time.Second && time.Now().Sub(t) > -time.Second)
-	require.Equal(t2.t, "drivertest", project)
-	require.Equal(t2.t, "drivertest", topic)
-	require.Equal(t2.t, map[string]interface{}{"hello": "world"}, meta)
-	require.Equal(t2.t, "hello, world", message)
+	assert.True(t2.t, time.Now().Sub(t) < time.Second && time.Now().Sub(t) > -time.Second)
+	assert.Equal(t2.t, "drivertest", project)
+	assert.Equal(t2.t, "drivertest", topic)
+	assert.Equal(t2.t, map[string]interface{}{"hello": "world"}, meta)
+	assert.Equal(t2.t, "hello, world", message)
 	return nil
 }
 
@@ -25,6 +25,7 @@ func TestDriver(t *testing.T) {
 	d = &testDriver{t: t}
 	SetProject("drivertest")
 	SetDriver(d)
+	defer SetDriver(SimpleDriver())
 	ctx := SetLabel(context.Background(), "hello", "world")
 	Log(ctx, "drivertest", "hello, %s", "world")
 }
