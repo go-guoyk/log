@@ -56,3 +56,12 @@ func GetAllLabels(ctx context.Context) map[string]interface{} {
 	m, _ := ctx.Value(labelsKey).(map[string]interface{})
 	return m
 }
+
+func RemoveAllLabels(ctx context.Context) context.Context {
+	if m, ok := ctx.Value(labelsKey).(map[string]interface{}); ok {
+		for key := range m {
+			delete(m, key)
+		}
+	}
+	return ctx
+}

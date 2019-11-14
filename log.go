@@ -13,20 +13,24 @@ const (
 )
 
 var (
-	activeProject string = "noname"
-	activeDriver  Driver = SimpleDriver()
+	activeProject string  = "noname"
+	activeAdapter Adapter = SimpleAdapter()
 )
 
 func SetProject(project string) {
 	activeProject = project
 }
 
-func SetDriver(driver Driver) {
-	activeDriver = driver
+func SetAdapter(adapter Adapter) {
+	activeAdapter = adapter
 }
 
 func Log(ctx context.Context, topic string, format string, items ...interface{}) {
-	_ = activeDriver.Log(time.Now(), activeProject, topic, GetAllLabels(ctx), fmt.Sprintf(format, items...))
+	if len(items) == 0 {
+		_ = activeAdapter.Log(time.Now(), activeProject, topic, GetAllLabels(ctx), format)
+	} else {
+		_ = activeAdapter.Log(time.Now(), activeProject, topic, GetAllLabels(ctx), fmt.Sprintf(format, items...))
+	}
 }
 
 func Debug(ctx context.Context, format string, items ...interface{}) {

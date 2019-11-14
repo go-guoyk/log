@@ -7,17 +7,17 @@ import (
 	"time"
 )
 
-type Driver interface {
-	Log(t time.Time, project, topic string, meta map[string]interface{}, message string) error
+type Adapter interface {
+	Log(t time.Time, project, topic string, labels map[string]interface{}, message string) error
 }
 
-func SimpleDriver() Driver {
-	return &simpleDriver{}
+func SimpleAdapter() Adapter {
+	return &simpleAdapter{}
 }
 
-type simpleDriver struct{}
+type simpleAdapter struct{}
 
-func (s *simpleDriver) Log(t time.Time, project, topic string, labels map[string]interface{}, message string) error {
+func (s *simpleAdapter) Log(t time.Time, project, topic string, labels map[string]interface{}, message string) error {
 	var mLabels []byte
 	if len(labels) > 0 {
 		mLabels, _ = json.Marshal(labels)

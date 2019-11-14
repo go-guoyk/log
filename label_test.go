@@ -27,4 +27,6 @@ func TestSetGetRemoveLabel(t *testing.T) {
 	require.Equal(t, map[string]interface{}{}, GetAllLabels(ctx))
 	ctx = SetLabels(ctx, map[string]interface{}{"hello3": "world4", "hello5": "hello6"})
 	require.Equal(t, map[string]interface{}{"hello3": "world4", "hello5": "hello6"}, GetAllLabels(ctx))
+	ctx = RemoveAllLabels(ctx)
+	require.Equal(t, map[string]interface{}{}, GetAllLabels(ctx))
 }
