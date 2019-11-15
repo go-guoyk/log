@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"go.guoyk.net/log"
+	"github.com/novakit/log"
 )
 
 const (

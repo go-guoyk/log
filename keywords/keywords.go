@@ -2,7 +2,7 @@ package keywords
 
 import (
 	"context"
-	"go.guoyk.net/log"
+	"github.com/novakit/log"
 )
 
 const (

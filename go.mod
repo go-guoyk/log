@@ -1,4 +1,4 @@
-module go.guoyk.net/log
+module github.com/novakit/log
 
 go 1.13
 
