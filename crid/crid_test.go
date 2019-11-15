@@ -1,4 +1,4 @@
-package log
+package crid
 
 import (
 	"context"
@@ -8,17 +8,17 @@ import (
 
 func TestCreateGenerateGetRemoveCrid(t *testing.T) {
 	ctx := context.Background()
-	ctx = SetOrGenerateCrid(ctx, "")
-	crid := GetCrid(ctx)
+	ctx = SetOrGenerate(ctx, "")
+	crid := Get(ctx)
 	require.NotEmpty(t, crid)
-	require.NotEqual(t, EmptyCrid, crid)
+	require.NotEqual(t, Empty, crid)
 
 	ctx = context.Background()
-	ctx = SetOrGenerateCrid(ctx, "111")
-	crid = GetCrid(ctx)
+	ctx = SetOrGenerate(ctx, "111")
+	crid = Get(ctx)
 	require.Equal(t, "111", crid)
 
-	ctx = RemoveCrid(ctx)
-	crid = GetCrid(ctx)
-	require.Equal(t, EmptyCrid, crid)
+	ctx = Remove(ctx)
+	crid = Get(ctx)
+	require.Equal(t, Empty, crid)
 }
