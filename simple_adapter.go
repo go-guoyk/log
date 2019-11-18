@@ -8,20 +8,20 @@ import (
 	"strings"
 )
 
-// ConsoleAdapter returns the default console adapter
-func ConsoleAdapter() Adapter {
-	return defaultConsoleAdapter
+// SimpleAdapter returns the default console adapter
+func SimpleAdapter() Adapter {
+	return defaultSimpleAdapter
 }
 
-var defaultConsoleAdapter = consoleAdapter{
+var defaultSimpleAdapter = simpleAdapter{
 	w: os.Stdout,
 }
 
-type consoleAdapter struct {
+type simpleAdapter struct {
 	w io.Writer
 }
 
-func (a consoleAdapter) Log(e Event) error {
+func (a simpleAdapter) Log(e Event) error {
 	var labels []byte
 	if len(e.Labels) > 0 {
 		labels, _ = json.Marshal(e.Labels)
