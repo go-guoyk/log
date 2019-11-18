@@ -4,24 +4,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 )
 
-// SimpleAdapter returns the default console adapter
-func SimpleAdapter() Adapter {
-	return defaultSimpleAdapter
+type consoleAdapter struct {
+	w       io.Writer
+	filters Filters
 }
 
-var defaultSimpleAdapter = simpleAdapter{
-	w: os.Stdout,
+func NewConsoleAdapter(w io.Writer, filters Filters) Adapter {
+	return &consoleAdapter{
+		w:       w,
+		filters: filters,
+	}
 }
 
-type simpleAdapter struct {
-	w io.Writer
-}
-
-func (a simpleAdapter) Log(e Event) error {
+func (a consoleAdapter) Log(e Event) error {
+	if !a.filters.IsTopicEnabled(e.Scope, e.Topic) {
+		return nil
+	}
 	var labels []byte
 	if len(e.Labels) > 0 {
 		labels, _ = json.Marshal(e.Labels)

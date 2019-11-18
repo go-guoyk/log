@@ -7,7 +7,7 @@ import (
 
 func init() {
 	opts := log.Options{}
-	conf.RegisterLoader(&conf.Loader{
+	conf.Register(&conf.Loader{
 		Name:   "log",
 		Target: &opts,
 		Loaded: func() {

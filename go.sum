@@ -1,7 +1,11 @@
+github.com/creasty/defaults v1.3.0 h1:uG+RAxYbJgOPCOdKEcec9ZJXeva7Y6mj/8egdzwmLtw=
+github.com/creasty/defaults v1.3.0/go.mod h1:CIEEvs7oIVZm30R8VxtFJs+4k201gReYyuYHJxZc68I=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/novakit/conf v0.0.0-20191116171832-f5e120dfa5c5 h1:8DumfCgDWTyO6VMu1qNjk3966euhNbClLtCHcUQQICg=
 github.com/novakit/conf v0.0.0-20191116171832-f5e120dfa5c5/go.mod h1:VU99KZh6GLlX0qYZqT0qmE88V/XozBAYggqzng1tGOM=
+github.com/novakit/conf v0.0.0-20191118171353-8a70dfae5fd4 h1:qm7pFpL1cjV7m7tOOYIPDozsdYE7rp117YmrFUiK2lU=
+github.com/novakit/conf v0.0.0-20191118171353-8a70dfae5fd4/go.mod h1:heiJuULjroCm7rfhsioX0r3pzN8CM+2yWeY+yEX9U7A=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

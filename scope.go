@@ -6,11 +6,6 @@ import (
 	"time"
 )
 
-const (
-	// ScopeNameDefault scope name used for default configuration
-	ScopeNameDefault = "default"
-)
-
 type Scope struct {
 	Name string
 }
@@ -19,12 +14,11 @@ func NewScope(name string) *Scope {
 	return &Scope{Name: name}
 }
 
-func (s *Scope) IsTopicEnabled(topic string) bool {
-	return false
-}
-
 // Loglf log a message with additional labels and format
 func (s *Scope) Loglf(ctx context.Context, topic string, addLabels Labels, format string, items ...interface{}) {
+	if !activeFilters.IsTopicEnabled(s.Name, topic) {
+		return
+	}
 	e := Event{
 		Timestamp: time.Now(),
 		Hostname:  activeHostname,
@@ -49,7 +43,9 @@ func (s *Scope) Loglf(ctx context.Context, topic string, addLabels Labels, forma
 	} else {
 		e.Message = fmt.Sprintf(format, items...)
 	}
-	_ = activeAdapter.Log(e)
+	for _, a := range activeAdapters {
+		_ = a.Log(e)
+	}
 }
 
 // Logl log a message with additional labels
