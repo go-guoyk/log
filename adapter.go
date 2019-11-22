@@ -4,4 +4,6 @@ package log
 type Adapter interface {
 	// Log log a event, returns error
 	Log(e Event) error
+	// Close close the adapter
+	Close() error
 }

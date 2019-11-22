@@ -8,19 +8,19 @@ import (
 )
 
 type consoleAdapter struct {
-	w       io.Writer
-	filters Filters
+	w      io.Writer
+	filter *Filter
 }
 
-func NewConsoleAdapter(w io.Writer, filters Filters) Adapter {
+func NewConsoleAdapter(w io.Writer, filter *Filter) Adapter {
 	return &consoleAdapter{
-		w:       w,
-		filters: filters,
+		w:      w,
+		filter: filter,
 	}
 }
 
-func (a consoleAdapter) Log(e Event) error {
-	if !a.filters.IsTopicEnabled(e.Scope, e.Topic) {
+func (a *consoleAdapter) Log(e Event) error {
+	if !a.filter.IsTopicEnabled(e.Topic) {
 		return nil
 	}
 	var labels []byte
@@ -30,14 +30,15 @@ func (a consoleAdapter) Log(e Event) error {
 	}
 	_, err := fmt.Fprintf(
 		a.w,
-		"%s [%s:%s:%s:%s] %s%s\n",
-		e.Timestamp.Format("2006-01-02T15:04:05.999-0700"),
-		e.Project,
-		e.Env,
-		e.Hostname,
+		"%s [%s] %s%s\n",
+		e.Timestamp.Format("2006-01-02T15:04:05.000-0700"),
 		e.Topic,
 		labels,
 		strings.TrimSpace(e.Message),
 	)
 	return err
+}
+
+func (a *consoleAdapter) Close() error {
+	return nil
 }

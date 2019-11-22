@@ -18,7 +18,7 @@ func TestSimpleAdapter(t *testing.T) {
 		Message:   "test",
 	}
 	b := &bytes.Buffer{}
-	a := NewConsoleAdapter(b, NewFilters(map[string][]string{"default": {"-no"}}))
+	a := NewConsoleAdapter(b, NewFilter([]string{"-"}))
 	_ = a.Log(e)
-	require.Equal(t, "2011-11-11T11:11:11+0000 [test:test:test:test] {\"test\":\"test\"} test\n", b.String())
+	require.Equal(t, "2011-11-11T11:11:11+0000 [test] {\"test\":\"test\"} test\n", b.String())
 }
