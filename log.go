@@ -4,55 +4,81 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
-
-// Event log event
-type Event struct {
-	Timestamp time.Time `json:"timestamp"`
-	Project   string    `json:"project"`
-	Env       string    `json:"env"`
-	Hostname  string    `json:"hostname"`
-	Topic     string    `json:"topic"`
-	Labels    Labels    `json:"labels"`
-	Message   string    `json:"message"`
-}
-
-// Adapter adapter to the actual log facility
-type Adapter interface {
-	// Log log a event, returns error
-	Log(e Event) error
-}
 
 var (
 	activeProject     = "noname"
 	activeEnv         = "noname"
 	activeHostname, _ = os.Hostname()
-	activeAdapter     = ConsoleAdapter()
+	activeFilter      = &Filter{IsBlackList: true}
+	activeAppenders   []Appender
 )
 
-// SetProject set project
-func SetProject(project string) {
-	activeProject = project
+func stderr(format string, items ...interface{}) {
+	_, _ = fmt.Fprintf(os.Stderr, "[novakit/log] "+format+"\n", items...)
 }
 
-// SetEnv set environment
-func SetEnv(env string) {
-	activeEnv = env
+func setActiveProject(project string) {
+	if project = strings.TrimSpace(project); len(project) > 0 {
+		activeProject = project
+	}
 }
 
-// SetHostname set hostname
-func SetHostname(hostname string) {
-	activeHostname = hostname
+func setActiveEnv(env string) {
+	if env = strings.TrimSpace(env); len(env) > 0 {
+		activeEnv = env
+	}
 }
 
-// SetAdapter set adapter
-func SetAdapter(adapter Adapter) {
-	activeAdapter = adapter
+func setActiveHostname(hostname string) {
+	if hostname = strings.TrimSpace(hostname); len(hostname) > 0 {
+		activeHostname = hostname
+	}
+}
+
+func setActiveFilter(filter []string) {
+	activeFilter = NewFilter(filter)
+}
+
+func setActiveAppenders(appenders []Appender) {
+	existedAppenders := activeAppenders
+	activeAppenders = appenders
+	for _, a := range existedAppenders {
+		if err := a.Close(); err != nil {
+			stderr("failed to close appender: %s", err.Error())
+		}
+	}
+}
+
+func Setup(opts Options) {
+	setActiveProject(opts.Project)
+	setActiveEnv(opts.Env)
+	setActiveHostname(opts.Hostname)
+	setActiveFilter(opts.Topics)
+
+	var appenders []Appender
+	if opts.Console != nil {
+		if opts.Console.Enabled {
+			appenders = append(appenders, NewConsoleAppender(os.Stdout, NewFilter(opts.Console.Topics)))
+		}
+	}
+	if opts.File != nil {
+		if opts.File.Enabled {
+			if err := os.MkdirAll(opts.File.Dir, 0755); err != nil {
+			}
+			appenders = append(appenders, NewFileAppender(opts.File.Dir, NewFilter(opts.File.Topics)))
+		}
+	}
+	setActiveAppenders(appenders)
 }
 
 // Loglf log a message with additional labels and format
 func Loglf(ctx context.Context, topic string, addLabels Labels, format string, items ...interface{}) {
+	if !activeFilter.IsTopicEnabled(topic) {
+		return
+	}
 	e := Event{
 		Timestamp: time.Now(),
 		Hostname:  activeHostname,
@@ -77,7 +103,11 @@ func Loglf(ctx context.Context, topic string, addLabels Labels, format string, i
 	} else {
 		e.Message = fmt.Sprintf(format, items...)
 	}
-	_ = activeAdapter.Log(e)
+	for _, a := range activeAppenders {
+		if err := a.Log(e); err != nil {
+			stderr("failed to append appender: %s", err.Error())
+		}
+	}
 }
 
 // Logl log a message with additional labels
