@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestSimpleAdapter(t *testing.T) {
+func TestConsoleAppender(t *testing.T) {
 	e := Event{
 		Timestamp: time.Date(2011, 11, 11, 11, 11, 11, 0, time.UTC),
 		Project:   "test",
@@ -18,7 +18,7 @@ func TestSimpleAdapter(t *testing.T) {
 		Message:   "test",
 	}
 	b := &bytes.Buffer{}
-	a := NewConsoleAdapter(b, NewFilter([]string{"-"}))
+	a := NewConsoleAppender(b, NewFilter([]string{"-"}))
 	_ = a.Log(e)
-	require.Equal(t, "2011-11-11T11:11:11+0000 [test] {\"test\":\"test\"} test\n", b.String())
+	require.Equal(t, "2011-11-11T11:11:11.000+0000 [test] {\"test\":\"test\"} test\n", b.String())
 }

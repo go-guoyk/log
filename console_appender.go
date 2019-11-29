@@ -7,19 +7,20 @@ import (
 	"strings"
 )
 
-type consoleAdapter struct {
+type consoleAppender struct {
 	w      io.Writer
 	filter *Filter
 }
 
-func NewConsoleAdapter(w io.Writer, filter *Filter) Adapter {
-	return &consoleAdapter{
+// NewConsoleAppender create a console appender
+func NewConsoleAppender(w io.Writer, filter *Filter) Appender {
+	return &consoleAppender{
 		w:      w,
 		filter: filter,
 	}
 }
 
-func (a *consoleAdapter) Log(e Event) error {
+func (a *consoleAppender) Log(e Event) error {
 	if !a.filter.IsTopicEnabled(e.Topic) {
 		return nil
 	}
@@ -39,6 +40,6 @@ func (a *consoleAdapter) Log(e Event) error {
 	return err
 }
 
-func (a *consoleAdapter) Close() error {
+func (a *consoleAppender) Close() error {
 	return nil
 }

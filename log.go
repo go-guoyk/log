@@ -13,7 +13,7 @@ var (
 	activeEnv         = "noname"
 	activeHostname, _ = os.Hostname()
 	activeFilter      = &Filter{IsBlackList: true}
-	activeAdapters    []Adapter
+	activeAppenders   []Appender
 )
 
 func stderr(format string, items ...interface{}) {
@@ -42,12 +42,12 @@ func setActiveFilter(filter []string) {
 	activeFilter = NewFilter(filter)
 }
 
-func setActiveAdapters(adapters []Adapter) {
-	exitedAdapters := activeAdapters
-	activeAdapters = adapters
-	for _, a := range exitedAdapters {
+func setActiveAppenders(appenders []Appender) {
+	existedAppenders := activeAppenders
+	activeAppenders = appenders
+	for _, a := range existedAppenders {
 		if err := a.Close(); err != nil {
-			stderr("failed to close adapter: %s", err.Error())
+			stderr("failed to close appender: %s", err.Error())
 		}
 	}
 }
@@ -58,20 +58,20 @@ func Setup(opts Options) {
 	setActiveHostname(opts.Hostname)
 	setActiveFilter(opts.Topics)
 
-	var adapters []Adapter
+	var appenders []Appender
 	if opts.Console != nil {
 		if opts.Console.Enabled {
-			adapters = append(adapters, NewConsoleAdapter(os.Stdout, NewFilter(opts.Console.Topics)))
+			appenders = append(appenders, NewConsoleAppender(os.Stdout, NewFilter(opts.Console.Topics)))
 		}
 	}
 	if opts.File != nil {
 		if opts.File.Enabled {
 			if err := os.MkdirAll(opts.File.Dir, 0755); err != nil {
 			}
-			adapters = append(adapters, NewFilterAdapter(opts.File.Dir, NewFilter(opts.File.Topics)))
+			appenders = append(appenders, NewFileAppender(opts.File.Dir, NewFilter(opts.File.Topics)))
 		}
 	}
-	setActiveAdapters(adapters)
+	setActiveAppenders(appenders)
 }
 
 // Loglf log a message with additional labels and format
@@ -103,9 +103,9 @@ func Loglf(ctx context.Context, topic string, addLabels Labels, format string, i
 	} else {
 		e.Message = fmt.Sprintf(format, items...)
 	}
-	for _, a := range activeAdapters {
+	for _, a := range activeAppenders {
 		if err := a.Log(e); err != nil {
-			stderr("failed to append adapter: %s", err.Error())
+			stderr("failed to append appender: %s", err.Error())
 		}
 	}
 }

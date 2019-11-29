@@ -10,15 +10,16 @@ import (
 	"sync"
 )
 
-type fileAdapter struct {
+type fileAppender struct {
 	dir        string
 	filter     *Filter
 	files      map[string]*os.File
 	filesMutex *sync.RWMutex
 }
 
-func NewFilterAdapter(dir string, filter *Filter) Adapter {
-	f := &fileAdapter{
+// NewFileAppender create a new file appender
+func NewFileAppender(dir string, filter *Filter) Appender {
+	f := &fileAppender{
 		dir:        dir,
 		filter:     filter,
 		files:      map[string]*os.File{},
@@ -27,7 +28,7 @@ func NewFilterAdapter(dir string, filter *Filter) Adapter {
 	return f
 }
 
-func (fa *fileAdapter) retrieveFile(filename string) (f *os.File, err error) {
+func (fa *fileAppender) retrieveFile(filename string) (f *os.File, err error) {
 	fa.filesMutex.RLock()
 	f = fa.files[filename]
 	fa.filesMutex.RUnlock()
@@ -49,7 +50,7 @@ func (fa *fileAdapter) retrieveFile(filename string) (f *os.File, err error) {
 	return
 }
 
-func (fa *fileAdapter) Log(e Event) (err error) {
+func (fa *fileAppender) Log(e Event) (err error) {
 	if !fa.filter.IsTopicEnabled(e.Topic) {
 		return
 	}
@@ -89,7 +90,7 @@ func (fa *fileAdapter) Log(e Event) (err error) {
 	return
 }
 
-func (fa *fileAdapter) Close() error {
+func (fa *fileAppender) Close() error {
 	oldFiles := fa.files
 	fa.files = map[string]*os.File{}
 	for _, a := range oldFiles {
