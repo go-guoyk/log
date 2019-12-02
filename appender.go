@@ -7,17 +7,3 @@ type Appender interface {
 	// Close close the appender
 	Close() error
 }
-
-// DiscardAppender a appender does nothing
-var DiscardAppender Appender = discardAppender{}
-
-type discardAppender struct {
-}
-
-func (discardAppender) Log(e Event) error {
-	return nil
-}
-
-func (discardAppender) Close() error {
-	return nil
-}

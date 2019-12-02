@@ -3,14 +3,15 @@ package log
 import (
 	"context"
 	"fmt"
+	"github.com/novakit/log/labels"
 	"os"
 	"strings"
 	"time"
 )
 
 var (
-	activeProject     = "noname"
-	activeEnv         = "noname"
+	activeProject     = "unknown"
+	activeEnv         = "unknown"
 	activeHostname, _ = os.Hostname()
 	activeFilter      = &Filter{IsBlackList: true}
 	activeAppenders   []Appender
@@ -35,6 +36,8 @@ func setActiveEnv(env string) {
 func setActiveHostname(hostname string) {
 	if hostname = strings.TrimSpace(hostname); len(hostname) > 0 {
 		activeHostname = hostname
+	} else if activeHostname, _ = os.Hostname(); len(hostname) > 0 {
+		activeHostname = "unknown"
 	}
 }
 
@@ -75,7 +78,7 @@ func Setup(opts Options) {
 }
 
 // Loglf log a message with additional labels and format
-func Loglf(ctx context.Context, topic string, addLabels Labels, format string, items ...interface{}) {
+func Loglf(ctx context.Context, topic string, addLabels labels.Labels, format string, items ...interface{}) {
 	if !activeFilter.IsTopicEnabled(topic) {
 		return
 	}
@@ -87,9 +90,9 @@ func Loglf(ctx context.Context, topic string, addLabels Labels, format string, i
 		Topic:     topic,
 	}
 
-	ctxLabels := GetAllLabels(ctx)
+	ctxLabels := labels.GetAll(ctx)
 	if len(ctxLabels)+len(addLabels) > 0 {
-		e.Labels = make(Labels)
+		e.Labels = make(map[string]interface{})
 		for k, v := range ctxLabels {
 			e.Labels[k] = v
 		}
@@ -111,7 +114,7 @@ func Loglf(ctx context.Context, topic string, addLabels Labels, format string, i
 }
 
 // Logl log a message with additional labels
-func Logl(ctx context.Context, topic string, addLabels Labels) {
+func Logl(ctx context.Context, topic string, addLabels labels.Labels) {
 	Loglf(ctx, topic, addLabels, "")
 }
 

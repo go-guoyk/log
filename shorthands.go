@@ -1,6 +1,9 @@
 package log
 
-import "context"
+import (
+	"context"
+	"github.com/novakit/log/labels"
+)
 
 // Error shorthand for Log with topic error
 func Error(ctx context.Context, message string) {
@@ -13,12 +16,12 @@ func Errorf(ctx context.Context, format string, items ...interface{}) {
 }
 
 // Errorl shorthand for Logl with topic error
-func Errorl(ctx context.Context, addLabels Labels) {
+func Errorl(ctx context.Context, addLabels labels.Labels) {
 	Logl(ctx, "error", addLabels)
 }
 
 // Errorlf shorthand for Loglf with topic error
-func Errorlf(ctx context.Context, addLabels Labels, format string, items ...interface{}) {
+func Errorlf(ctx context.Context, addLabels labels.Labels, format string, items ...interface{}) {
 	Loglf(ctx, "error", addLabels, format, items...)
 }
 
@@ -33,12 +36,12 @@ func Infof(ctx context.Context, format string, items ...interface{}) {
 }
 
 // Infol shorthand for Logl with topic info
-func Infol(ctx context.Context, addLabels Labels) {
+func Infol(ctx context.Context, addLabels labels.Labels) {
 	Logl(ctx, "info", addLabels)
 }
 
 // Infolf shorthand for Loglf with topic info
-func Infolf(ctx context.Context, addLabels Labels, format string, items ...interface{}) {
+func Infolf(ctx context.Context, addLabels labels.Labels, format string, items ...interface{}) {
 	Loglf(ctx, "info", addLabels, format, items...)
 }
 
@@ -53,11 +56,11 @@ func Debugf(ctx context.Context, format string, items ...interface{}) {
 }
 
 // Debugl shorthand for Logl with topic debug
-func Debugl(ctx context.Context, addLabels Labels) {
+func Debugl(ctx context.Context, addLabels labels.Labels) {
 	Logl(ctx, "debug", addLabels)
 }
 
 // Debuglf shorthand for Loglf with topic debug
-func Debuglf(ctx context.Context, addLabels Labels, format string, items ...interface{}) {
+func Debuglf(ctx context.Context, addLabels labels.Labels, format string, items ...interface{}) {
 	Loglf(ctx, "debug", addLabels, format, items...)
 }

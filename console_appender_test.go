@@ -2,6 +2,7 @@ package log
 
 import (
 	"bytes"
+	"github.com/novakit/log/labels"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -14,7 +15,7 @@ func TestConsoleAppender(t *testing.T) {
 		Env:       "test",
 		Hostname:  "test",
 		Topic:     "test",
-		Labels:    Labels{"test": "test"},
+		Labels:    labels.Labels{"test": "test"},
 		Message:   "test",
 	}
 	b := &bytes.Buffer{}

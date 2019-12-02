@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"github.com/novakit/log/labels"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -23,7 +24,7 @@ func TestLog(t *testing.T) {
 			Topics:  []string{"-debug"},
 		},
 	})
-	ctx := SetLabel(context.Background(), "hello", "world")
+	ctx := labels.Set(context.Background(), "hello", "world")
 	Info(ctx, "hello, world")
 	Debug(ctx, "hello, world")
 	setActiveAppenders(nil)
