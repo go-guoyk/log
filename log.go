@@ -73,6 +73,15 @@ func Setup(opts Options) {
 	setActiveAppender(appender.Filter(filter.Topic(opts.Topics), appender.Multi(appenders...)))
 }
 
+func AutoSetup(load func(name string, out interface{}) error) error {
+	var opts Options
+	if err := load("log", &opts); err != nil {
+		return nil
+	}
+	Setup(opts)
+	return nil
+}
+
 // log log a message with additional labels and format
 func Loglf(topic string, l labels.Labels, format string, items ...interface{}) {
 	// build event
