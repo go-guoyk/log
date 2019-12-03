@@ -1,71 +1,30 @@
 package labels
 
-import "context"
+// Labels is a type alias of map[string]interface{}
+type Labels map[string]interface{}
 
-type (
-	labelsKeyType int
-
-	// Labels is a type alias of map[string]interface{}
-	Labels map[string]interface{}
-)
-
-const labelsKey = labelsKeyType(0)
-
-// Get get log label from context
-func Get(ctx context.Context, key string) interface{} {
-	if m, ok := ctx.Value(labelsKey).(Labels); ok {
-		return m[key]
-	}
-	return nil
-}
-
-// Set set log label to context, this may change context
-func Set(ctx context.Context, key string, val interface{}) context.Context {
-	if m, ok := ctx.Value(labelsKey).(Labels); ok {
-		m[key] = val
-	} else {
-		m = Labels{key: val}
-		ctx = context.WithValue(ctx, labelsKey, m)
-	}
-	return ctx
-}
-
-// Remove remove multiple labels from context
-func Remove(ctx context.Context, keys ...string) context.Context {
-	if m, ok := ctx.Value(labelsKey).(Labels); ok {
-		for _, key := range keys {
-			delete(m, key)
+// Merge merge another labels into self
+func (l Labels) Merge(a Labels) Labels {
+	o := l.Clone()
+	if len(a) != 0 {
+		if o == nil {
+			o = make(Labels, len(a))
+		}
+		for k, v := range a {
+			o[k] = v
 		}
 	}
-	return ctx
+	return o
 }
 
-// SetAll set multiple log labels to context, this may change context
-func SetAll(ctx context.Context, labels Labels) context.Context {
-	var m Labels
-	var ok bool
-	if m, ok = ctx.Value(labelsKey).(Labels); !ok {
-		m = Labels{}
-		ctx = context.WithValue(ctx, labelsKey, m)
+// Clone a shallow clone of label
+func (l Labels) Clone() Labels {
+	if len(l) == 0 {
+		return nil
 	}
-	for key, val := range labels {
-		m[key] = val
+	c := make(Labels, len(l))
+	for k, v := range l {
+		c[k] = v
 	}
-	return ctx
-}
-
-// GetAll get all log labels from context
-func GetAll(ctx context.Context) Labels {
-	m, _ := ctx.Value(labelsKey).(Labels)
-	return m
-}
-
-// Clear remove all log labels from context
-func Clear(ctx context.Context) context.Context {
-	if m, ok := ctx.Value(labelsKey).(Labels); ok {
-		for key := range m {
-			delete(m, key)
-		}
-	}
-	return ctx
+	return c
 }

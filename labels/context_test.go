@@ -26,9 +26,9 @@ func TestSetGetRemoveLabel(t *testing.T) {
 	require.Equal(t, Labels{"hello1": "world1"}, ctx.Value(labelsKey))
 	require.Equal(t, Labels{"hello1": "world1"}, GetAll(ctx))
 	ctx = Remove(ctx, "hello", "hello1")
-	require.Equal(t, Labels{}, GetAll(ctx))
+	require.Equal(t, 0, len(GetAll(ctx)))
 	ctx = SetAll(ctx, Labels{"hello3": "world4", "hello5": "hello6"})
 	require.Equal(t, Labels{"hello3": "world4", "hello5": "hello6"}, GetAll(ctx))
 	ctx = Clear(ctx)
-	require.Equal(t, Labels{}, GetAll(ctx))
+	require.Equal(t, 0, len(GetAll(ctx)))
 }

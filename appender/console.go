@@ -1,29 +1,18 @@
-package log
+package appender
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/novakit/log/event"
 	"io"
 	"strings"
 )
 
 type consoleAppender struct {
-	w      io.Writer
-	filter *Filter
+	w io.Writer
 }
 
-// NewConsoleAppender create a console appender
-func NewConsoleAppender(w io.Writer, filter *Filter) Appender {
-	return &consoleAppender{
-		w:      w,
-		filter: filter,
-	}
-}
-
-func (a *consoleAppender) Log(e Event) error {
-	if !a.filter.IsTopicEnabled(e.Topic) {
-		return nil
-	}
+func (a *consoleAppender) Log(e event.Event) error {
 	var labels []byte
 	if len(e.Labels) > 0 {
 		labels, _ = json.Marshal(e.Labels)
@@ -42,4 +31,11 @@ func (a *consoleAppender) Log(e Event) error {
 
 func (a *consoleAppender) Close() error {
 	return nil
+}
+
+// Console create a console appender
+func Console(w io.Writer) Appender {
+	return &consoleAppender{
+		w: w,
+	}
 }

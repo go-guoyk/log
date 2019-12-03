@@ -1,15 +1,16 @@
-package log
+package appender
 
 import (
 	"bytes"
+	"github.com/novakit/log/event"
 	"github.com/novakit/log/labels"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-func TestConsoleAppender(t *testing.T) {
-	e := Event{
+func TestConsole(t *testing.T) {
+	e := event.Event{
 		Timestamp: time.Date(2011, 11, 11, 11, 11, 11, 0, time.UTC),
 		Project:   "test",
 		Env:       "test",
@@ -19,7 +20,7 @@ func TestConsoleAppender(t *testing.T) {
 		Message:   "test",
 	}
 	b := &bytes.Buffer{}
-	a := NewConsoleAppender(b, NewFilter([]string{"-"}))
+	a := Console(b)
 	_ = a.Log(e)
 	require.Equal(t, "2011-11-11T11:11:11.000+0000 [test] {\"test\":\"test\"} test\n", b.String())
 }

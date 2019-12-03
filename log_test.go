@@ -27,7 +27,6 @@ func TestLog(t *testing.T) {
 	ctx := labels.Set(context.Background(), "hello", "world")
 	Info(ctx, "hello, world")
 	Debug(ctx, "hello, world")
-	setActiveAppenders(nil)
 
 	tm, err := time.Parse("2006-01-02T15:04:05.000-0700", "2019-11-22T15:49:44.630+0800")
 	require.NoError(t, err)
