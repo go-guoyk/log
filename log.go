@@ -3,17 +3,20 @@ package log
 import (
 	"context"
 	"fmt"
+	"github.com/novakit/log/appender"
+	"github.com/novakit/log/event"
+	"github.com/novakit/log/filter"
+	"github.com/novakit/log/labels"
 	"os"
 	"strings"
 	"time"
 )
 
 var (
-	activeProject     = "noname"
-	activeEnv         = "noname"
+	activeProject     = "unknown"
+	activeEnv         = "unknown"
 	activeHostname, _ = os.Hostname()
-	activeFilter      = &Filter{IsBlackList: true}
-	activeAppenders   []Appender
+	activeAppender    = appender.NOP()
 )
 
 func stderr(format string, items ...interface{}) {
@@ -35,92 +38,88 @@ func setActiveEnv(env string) {
 func setActiveHostname(hostname string) {
 	if hostname = strings.TrimSpace(hostname); len(hostname) > 0 {
 		activeHostname = hostname
+	} else if activeHostname, _ = os.Hostname(); len(hostname) > 0 {
+		activeHostname = "unknown"
 	}
 }
 
-func setActiveFilter(filter []string) {
-	activeFilter = NewFilter(filter)
-}
-
-func setActiveAppenders(appenders []Appender) {
-	existedAppenders := activeAppenders
-	activeAppenders = appenders
-	for _, a := range existedAppenders {
-		if err := a.Close(); err != nil {
-			stderr("failed to close appender: %s", err.Error())
-		}
+func setActiveAppender(a appender.Appender) {
+	if a == nil {
+		a = appender.NOP()
 	}
+	oldAppender := activeAppender
+	activeAppender = a
+	_ = oldAppender.Close()
 }
 
 func Setup(opts Options) {
 	setActiveProject(opts.Project)
 	setActiveEnv(opts.Env)
 	setActiveHostname(opts.Hostname)
-	setActiveFilter(opts.Topics)
 
-	var appenders []Appender
+	var appenders []appender.Appender
 	if opts.Console != nil {
 		if opts.Console.Enabled {
-			appenders = append(appenders, NewConsoleAppender(os.Stdout, NewFilter(opts.Console.Topics)))
+			appenders = append(appenders, appender.Filter(filter.Topic(opts.Console.Topics), appender.Console(os.Stdout)))
 		}
 	}
 	if opts.File != nil {
 		if opts.File.Enabled {
 			if err := os.MkdirAll(opts.File.Dir, 0755); err != nil {
 			}
-			appenders = append(appenders, NewFileAppender(opts.File.Dir, NewFilter(opts.File.Topics)))
+			appenders = append(appenders, appender.Filter(filter.Topic(opts.File.Topics), appender.File(opts.File.Dir)))
 		}
 	}
-	setActiveAppenders(appenders)
+	setActiveAppender(appender.Filter(filter.Topic(opts.Topics), appender.Multi(appenders...)))
 }
 
-// Loglf log a message with additional labels and format
-func Loglf(ctx context.Context, topic string, addLabels Labels, format string, items ...interface{}) {
-	if !activeFilter.IsTopicEnabled(topic) {
-		return
+func AutoSetup(load func(name string, out interface{}) error) error {
+	var opts Options
+	if err := load("log", &opts); err != nil {
+		return nil
 	}
-	e := Event{
+	Setup(opts)
+	return nil
+}
+
+// log log a message with additional labels and format
+func Loglf(topic string, l labels.Labels, format string, items ...interface{}) {
+	// build event
+	e := event.Event{
 		Timestamp: time.Now(),
 		Hostname:  activeHostname,
 		Project:   activeProject,
 		Env:       activeEnv,
 		Topic:     topic,
+		Labels:    l,
 	}
 
-	ctxLabels := GetAllLabels(ctx)
-	if len(ctxLabels)+len(addLabels) > 0 {
-		e.Labels = make(Labels)
-		for k, v := range ctxLabels {
-			e.Labels[k] = v
-		}
-		for k, v := range addLabels {
-			e.Labels[k] = v
-		}
-	}
-
+	// build message
 	if len(items) == 0 {
 		e.Message = format
 	} else {
 		e.Message = fmt.Sprintf(format, items...)
 	}
-	for _, a := range activeAppenders {
-		if err := a.Log(e); err != nil {
-			stderr("failed to append appender: %s", err.Error())
-		}
+
+	if err := activeAppender.Log(e); err != nil {
+		stderr("failed to append appender: %s", err.Error())
 	}
 }
 
-// Logl log a message with additional labels
-func Logl(ctx context.Context, topic string, addLabels Labels) {
-	Loglf(ctx, topic, addLabels, "")
+// Logl log a message with label
+func Logl(ctx context.Context, topic string, l labels.Labels, merge bool) {
+	if merge {
+		l = l.Merge(labels.GetAll(ctx))
+	}
+	Loglf(topic, l, "")
 }
 
 // Logf log a message with format
 func Logf(ctx context.Context, topic string, format string, items ...interface{}) {
-	Loglf(ctx, topic, nil, format, items...)
+	Loglf(topic, labels.GetAll(ctx), format, items...)
 }
 
 // Log log a message
 func Log(ctx context.Context, topic string, message string) {
-	Loglf(ctx, topic, nil, message)
+	Loglf(topic, labels.GetAll(ctx), message)
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/novakit/log"
+	"github.com/novakit/log/labels"
 )
 
 const (
@@ -20,7 +20,7 @@ func SetOrGenerate(ctx context.Context, crid string) context.Context {
 	if len(crid) == 0 {
 		return Generate(ctx)
 	} else {
-		return log.SetLabel(ctx, LabelKey, crid)
+		return labels.Set(ctx, LabelKey, crid)
 	}
 }
 
@@ -28,12 +28,12 @@ func SetOrGenerate(ctx context.Context, crid string) context.Context {
 func Generate(ctx context.Context) context.Context {
 	bytes := make([]byte, 8, 8)
 	_, _ = rand.Read(bytes)
-	return log.SetLabel(ctx, LabelKey, hex.EncodeToString(bytes))
+	return labels.Set(ctx, LabelKey, hex.EncodeToString(bytes))
 }
 
 // Get get crid from context log labels
 func Get(ctx context.Context) string {
-	crid, _ := log.GetLabel(ctx, LabelKey).(string)
+	crid, _ := labels.Get(ctx, LabelKey).(string)
 	if len(crid) == 0 {
 		return Empty
 	} else {
@@ -43,5 +43,5 @@ func Get(ctx context.Context) string {
 
 // Remove remove crid from context log labels
 func Remove(ctx context.Context) context.Context {
-	return log.RemoveLabel(ctx, LabelKey)
+	return labels.Remove(ctx, LabelKey)
 }

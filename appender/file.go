@@ -1,9 +1,10 @@
-package log
+package appender
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/novakit/log/event"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,20 +13,8 @@ import (
 
 type fileAppender struct {
 	dir        string
-	filter     *Filter
 	files      map[string]*os.File
 	filesMutex *sync.RWMutex
-}
-
-// NewFileAppender create a new file appender
-func NewFileAppender(dir string, filter *Filter) Appender {
-	f := &fileAppender{
-		dir:        dir,
-		filter:     filter,
-		files:      map[string]*os.File{},
-		filesMutex: &sync.RWMutex{},
-	}
-	return f
 }
 
 func (fa *fileAppender) retrieveFile(filename string) (f *os.File, err error) {
@@ -50,11 +39,7 @@ func (fa *fileAppender) retrieveFile(filename string) (f *os.File, err error) {
 	return
 }
 
-func (fa *fileAppender) Log(e Event) (err error) {
-	if !fa.filter.IsTopicEnabled(e.Topic) {
-		return
-	}
-
+func (fa *fileAppender) Log(e event.Event) (err error) {
 	content := &bytes.Buffer{}
 	content.WriteString(e.Timestamp.Format("2006-01-02T15:04:05.000-0700"))
 	content.WriteByte(' ')
@@ -97,4 +82,14 @@ func (fa *fileAppender) Close() error {
 		_ = a.Close()
 	}
 	return nil
+}
+
+// File create a new file appender
+func File(dir string) Appender {
+	f := &fileAppender{
+		dir:        dir,
+		files:      map[string]*os.File{},
+		filesMutex: &sync.RWMutex{},
+	}
+	return f
 }
