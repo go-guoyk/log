@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/novakit/log/appender"
 	"github.com/novakit/log/event"
-	"github.com/novakit/log/filter"
 	"github.com/novakit/log/labels"
+	"github.com/novakit/log/topics"
 	"os"
 	"strings"
 	"time"
@@ -16,8 +16,14 @@ var (
 	activeProject     = "unknown"
 	activeEnv         = "unknown"
 	activeHostname, _ = os.Hostname()
-	activeAppender    = appender.NOP()
+	activeTopics      = topics.All()
+	activeAppenders   []AppenderRegistration
 )
+
+type AppenderRegistration struct {
+	Topics   topics.Topics
+	Appender appender.Appender
+}
 
 func stderr(format string, items ...interface{}) {
 	_, _ = fmt.Fprintf(os.Stderr, "[novakit/log] "+format+"\n", items...)
@@ -43,34 +49,51 @@ func setActiveHostname(hostname string) {
 	}
 }
 
-func setActiveAppender(a appender.Appender) {
-	if a == nil {
-		a = appender.NOP()
+func setActiveTopics(ts topics.Topics) {
+	if ts == nil {
+		ts = topics.All()
 	}
-	oldAppender := activeAppender
-	activeAppender = a
-	_ = oldAppender.Close()
+	activeTopics = ts
+}
+
+func setActiveAppender(as []AppenderRegistration) {
+	oldAppenders := activeAppenders
+	activeAppenders = as
+	for _, r := range oldAppenders {
+		if err := r.Appender.Close(); err != nil {
+			stderr("failed to close appender: %s", err.Error())
+		}
+	}
 }
 
 func Setup(opts Options) {
 	setActiveProject(opts.Project)
 	setActiveEnv(opts.Env)
 	setActiveHostname(opts.Hostname)
+	setActiveTopics(topics.New(opts.Topics))
 
-	var appenders []appender.Appender
+	var appenders []AppenderRegistration
 	if opts.Console != nil {
 		if opts.Console.Enabled {
-			appenders = append(appenders, appender.Filter(filter.Topic(opts.Console.Topics), appender.Console(os.Stdout)))
+			appenders = append(appenders, AppenderRegistration{
+				Topics:   topics.New(opts.Console.Topics),
+				Appender: appender.Console(os.Stdout),
+			})
 		}
 	}
 	if opts.File != nil {
 		if opts.File.Enabled {
 			if err := os.MkdirAll(opts.File.Dir, 0755); err != nil {
+				stderr("failed to create log directory '%s': %s", opts.File.Dir, err.Error())
+			} else {
+				appenders = append(appenders, AppenderRegistration{
+					Topics:   topics.New(opts.File.Topics),
+					Appender: appender.File(opts.File.Dir),
+				})
 			}
-			appenders = append(appenders, appender.Filter(filter.Topic(opts.File.Topics), appender.File(opts.File.Dir)))
 		}
 	}
-	setActiveAppender(appender.Filter(filter.Topic(opts.Topics), appender.Multi(appenders...)))
+	setActiveAppender(appenders)
 }
 
 func AutoSetup(load func(name string, out interface{}) error) error {
@@ -84,6 +107,10 @@ func AutoSetup(load func(name string, out interface{}) error) error {
 
 // log log a message with additional labels and format
 func Loglf(topic string, l labels.Labels, format string, items ...interface{}) {
+	if !activeTopics.Contains(topic) {
+		return
+	}
+
 	// build event
 	e := event.Event{
 		Timestamp: time.Now(),
@@ -101,8 +128,14 @@ func Loglf(topic string, l labels.Labels, format string, items ...interface{}) {
 		e.Message = fmt.Sprintf(format, items...)
 	}
 
-	if err := activeAppender.Log(e); err != nil {
-		stderr("failed to append appender: %s", err.Error())
+	for _, r := range activeAppenders {
+		if !r.Topics.Contains(topic) {
+			continue
+		}
+
+		if err := r.Appender.Log(e); err != nil {
+			stderr("failed to append appender: %s", err.Error())
+		}
 	}
 }
 
